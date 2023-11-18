@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evaluaci&oacuten Abdala TP 44</title>
+
+</head>
+
+<body>
+  <h1>evaluaci&oacuten abdala</h1>
+  <form id="form">
+    <label for="title">Nombre del cliente:</label>
+    <input type="text" id="nombre" required><br>
+    <label for="description">Apellido:</label>
+    <input type="text" id="apellido" required><br>
+    <label for="description">Edad:</label>
+    <input type="text" id="edad" required><br>
+    <label for="description">Estatura:</label>
+    <input type="text" id="estatura" required><br>
+    <label for="description">Codigo Postal:</label>
+    <input type="text" id="codigo" required><br>
+    <label for="description">Movil:</label>
+    <input type="text" id="movil" required><br>
+    <label for="description">Peso:</label>
+    <input type="text" id="peso" required><br>
+    <label for="description">Email:</label>
+    <input type="text" id="email" required><br>
+
+    <button type="submit">Agregar</button><br>
+  </form><br><br>
+
+  <br>
+  <label for="borrarId">Borrar por id:</label>
+  <input type="text" id="borrarId" placeholder="Ingrese la id"><br>
+  <button id="borrarPorId">Borrar por id</button><br><br>
+  <br>
+  <label for="modificar">Modificar por id:</label><br>
+  <input type="text" id="modificarId" placeholder="Ingrese el id del cliente"><br>
+  <br>
+  <button id="btnModificar">Modificar cliente por id</button><br>
+  <br>
+  <button id="btnListar">Listar todos</button><br>
+  <br>
+  <button id="btnNoMarplatenses">Listar clientes no marplatenses con Gmail</button><br>
+  <br>
+  <button id="btnListarPorPesoYAltura">Listar por peso mayor a 90 y altura mayor a 1.78</button><br>
+  <br>
+  <button id="btnPesoMasAlto">Listar por peso mas alto</button><br>
+  <br>
+  <button id="btnListarMenores">Listar menores de edad</button><br>
+  <br>
+  <button id="btnPromedio">Listar promedio de altura</button><br>
+
+
+  <ul id="data">
+
+  </ul>
+  <script>
+    const formulario = document.getElementById("form");
+    const datos = document.getElementById("data");
+
+    formulario.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const nombre = document.getElementById("nombre").value;
+      const apellido = document.getElementById("apellido").value;
+      const edad = document.getElementById("edad").value;
+      const estatura = document.getElementById("estatura").value;
+      const codigo = document.getElementById("codigo").value;
+      const movil = document.getElementById("movil").value;
+      const email = document.getElementById("email").value;
+      const peso = document.getElementById("peso").value;
+
+      fetch("/data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({nombre, apellido, edad, estatura, codigo, movil, email, peso}),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          mostrar();
+        })
+    });
+    document.getElementById("borrarPorId").addEventListener("click", () => {
+      const idABorrar = document.getElementById("borrarId").value;
+      borrarPorId(idABorrar);
+    });
+
+    document.getElementById("btnListar").addEventListener("click", () => {
+      mostrar();
+      listarTodos();
+    });
+
+    document.getElementById("btnModificar").addEventListener("click", () => {
+      const id = document.getElementById("modificarId").value;
+      obtenerDetallesPorId(id);
+    });
+
+    document.getElementById("btnListarPorPesoYAltura").addEventListener("click", () => {
+      mostrar();
+      listarPesoYAltura();
+    });
+
+    document.getElementById("btnNoMarplatenses").addEventListener("click", () => {
+      mostrar();
+      listarNoMarplatenses();
+    });
+
+    document.getElementById("btnPesoMasAlto").addEventListener("click", () => {
+      mostrar();
+      listarPeso();
+    });
+
+    document.getElementById("btnListarMenores").addEventListener("click", () => {
+      mostrar();
+      listarMenores();
+    });
+
+    document.getElementById("btnPromedio").addEventListener("click", () => {
+      mostrar();
+      listarPromedio();
+    });
+
+
+    function mostrar() {
+      datos.innerHTML = "";
+
+      fetch("/datos")
+        .then((response) => response.json())
+        .then((data) => {
+          data.forEach((jugador) => {
+            const list = document.createElement("li");
+            list.innerHTML = `${jugador.id} - ${jugador.nombre} - ${jugador.apellido} - ${jugador.edad} - ${jugador.estatura} - ${jugador.codigo} - ${jugador.movil} - ${jugador.peso} - ${jugador.email}`;
+            datos.appendChild(list);
+          });
+        })
+        .catch((error) => {
+          console.error("Error al obtener tabla:", error);
+        });
+    }
+
+    function borrarPorId(idABorrar) {
+      fetch("/borrar", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({id: idABorrar}),
+
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          mostrar();
+        })
+    }
+
+    function obtenerDetallesPorId(id) {
+      fetch(`/jugador${id}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.length > 0) {
+            const jugador = data[0];
+            mostrarFormularioModificar(jugador);
+          }
+        });
+    }
+    //nombre, apellido, edad, estatura, codigo, movil, peso, email
+    function listarTodos() {
+      fetch(`/todos`)
+        .then((response) => response.json())
+        .then((data) => {
+          data.forEach((jugador) => {
+            const list = document.createElement("li");
+            list.innerHTML = `${jugador.id} - ${jugador.nombre} - ${jugador.apellido} - ${jugador.edad} - ${jugador.estatura} - ${jugador.codigo} - ${jugador.movil} - ${jugador.peso} - ${jugador.email}`;
+            datos.appendChild(list);
+          });
+        });
+    }
+
+    function listarPesoYAltura() {
+      fetch(`/pesoyaltura`)
+        .then((response) => response.json())
+        .then((data) => {
+          data.forEach((jugador) => {
+            const list = document.createElement("li");
+            list.innerHTML = `${jugador.id} - ${jugador.nombre} - ${jugador.apellido} - ${jugador.edad} - ${jugador.estatura} - ${jugador.codigo} - ${jugador.movil} - ${jugador.peso} - ${jugador.email}`;
+            datos.appendChild(list);
+          });
+        });
+    }
+
+    function listarNoMarplatenses() {
+      fetch(`/marplatenses`)
+        .then((response) => response.json())
+        .then((data) => {
+          data.forEach((jugador) => {
+            const list = document.createElement("li");
+            list.innerHTML = `${jugador.id} - ${jugador.nombre} - ${jugador.apellido} - ${jugador.edad} - ${jugador.estatura} - ${jugador.codigo} - ${jugador.movil} - ${jugador.peso} - ${jugador.email}`;
+            datos.appendChild(list);
+          });
+        });
+    }
+
+    function listarPeso() {
+      fetch(`/peso`)
+        .then((response) => response.json())
+        .then((data) => {
+          data.forEach((jugador) => {
+            const list = document.createElement("li");
+            list.innerHTML = `${jugador.id} - ${jugador.nombre} - ${jugador.apellido} - ${jugador.edad} - ${jugador.estatura} - ${jugador.codigo} - ${jugador.movil} - ${jugador.peso} - ${jugador.email}`;
+            datos.appendChild(list);
+          });
+        });
+    }
+
+    function listarMenores() {
+      fetch(`/menores`)
+        .then((response) => response.json())
+        .then((data) => {
+          data.forEach((jugador) => {
+            const list = document.createElement("li");
+            list.innerHTML = `${jugador.id} - ${jugador.nombre} - ${jugador.apellido} - ${jugador.edad} - ${jugador.estatura} - ${jugador.codigo} - ${jugador.movil} - ${jugador.peso} - ${jugador.email}`;
+            datos.appendChild(list);
+          });
+        });
+    }
+
+    function listarPromedio() {
+      fetch(`/promedio`)
+        .then((response) => response.json())
+        .then((data) => {
+          const list = document.createElement("li");
+          list.innerHTML = `Promedio de estatura: ${data.promedio_estatura.toFixed(2)}`;
+          datos.appendChild(list);
+        });
+    }
+
+    //nombre, apellido, edad, estatura, codigo, movil, peso, email
+    //nuevoNombre, nuevoApellido, nuevaEdad, nuevaEstatura, nuevoCodigo, nuevoMovil, nuevoPeso, nuevoEmail
+    function mostrarFormularioModificar(jugador) {
+      const formularioModificar = document.createElement("form");
+      formularioModificar.innerHTML = `
+    <label for="modificarNombre">Nombre:</label>
+    <input type="text" id="nuevoNombre" value="${jugador.nombre}" required>
+    <label for="modificarEdad">Apellido:</label>
+    <input type="text" id="nuevoApellido" value="${jugador.apellido}" required>
+    <label for="modificarEdad">Edad:</label>
+    <input type="text" id="nuevaEdad" value="${jugador.edad}" required>
+    <label for="modificarEstatura">Estatura:</label>
+    <input type="text" id="nuevaEstatura" value="${jugador.estatura}" required>
+    <label for="modificarNacionalidad">Codigo Postal:</label>
+    <input type="text" id="nuevoCodigo" value="${jugador.codigo}" required>
+    <label for="modificarMovil">Tel&eacutefono:</label>
+    <input type="text" id="nuevoMovil" value="${jugador.movil}" required>
+    <label for="modificarPeso">Peso:</label>
+    <input type="text" id="nuevoPeso" value="${jugador.peso}" required>
+    <label for="modificarEmail">Peso:</label>
+    <input type="text" id="nuevoEmail" value="${jugador.email}" required>
+    <button type="submit">Guardar Cambios</button>
+    `;
+      //nuevoNombre, nuevoApellido, nuevaEdad, nuevaEstatura, nuevoCodigo, nuevoMovil, nuevoPeso, nuevoEmail
+      formularioModificar.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const nuevoNombre = document.getElementById("nuevoNombre").value;
+        const nuevoApellido = document.getElementById("nuevoApellido").value;
+        const nuevaEdad = document.getElementById("nuevaEdad").value;
+        const nuevaEstatura = document.getElementById("nuevaEstatura").value;
+        const nuevoCodigo = document.getElementById("nuevoCodigo").value;
+        const nuevoMovil = document.getElementById("nuevoMovil").value;
+        const nuevoPeso = document.getElementById("nuevoPeso").value;
+        const nuevoEmail = document.getElementById("nuevoEmail").value;
+
+        fetch(`/modificar${jugador.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({nuevoNombre, nuevoApellido, nuevaEdad, nuevaEstatura, nuevoCodigo, nuevoMovil, nuevoPeso, nuevoEmail}),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            mostrar();
+          });
+      });
+
+      datos.innerHTML = "";
+      datos.appendChild(formularioModificar);
+    }
+    mostrar();
+  </script>
+</body>
+
+</html>
